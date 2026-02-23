@@ -50,5 +50,70 @@ create table if not exists "practitionerTreatment" (
     "treatmentId" integer not null references "treatment" (
         "id"
     ) on delete cascade,
-    primary key (PRACTITIONERID, TREATMENTID)
+    primary key ("practitionerId", "treatmentId")
+);
+
+create table if not exists "room" (
+    "id" integer not null primary key,
+    "name" text not null,
+    "isActive" integer not null default 1,
+    "createdAt" text not null default current_timestamp,
+    "updatedAt" text not null default current_timestamp,
+    "clinicId" integer not null references "clinic" ("id") on delete cascade
+);
+
+create table if not exists "roomTreatment" (
+    "createdAt" text not null default current_timestamp,
+    "updatedAt" text not null default current_timestamp,
+    "roomId" integer not null references "room" ("id") on delete cascade,
+    "treatmentId" integer not null references "treatment" (
+        "id"
+    ) on delete cascade,
+    primary key ("roomId", "treatmentId")
+);
+
+create table if not exists "availability" (
+    "id" integer not null primary key,
+    "dayOfWeek" integer not null,
+    "startTime" text not null,
+    "endTime" text not null,
+    "createdAt" text not null default current_timestamp,
+    "updatedAt" text not null default current_timestamp,
+    "practitionerId" integer not null references "practitioner" (
+        "id"
+    ) on delete cascade
+);
+
+create table if not exists "unavailability" (
+    "id" integer not null primary key,
+    "dayOfWeek" integer not null,
+    "startTime" text not null,
+    "endTime" text not null,
+    "createdAt" text not null default current_timestamp,
+    "updatedAt" text not null default current_timestamp,
+    "practitionerId" integer not null references "practitioner" (
+        "id"
+    ) on delete cascade
+);
+
+create table if not exists "appointment" (
+    "id" integer not null primary key,
+    "date" text not null,
+    "startTime" text not null,
+    "endTime" text not null,
+    "bufferEndTime" text not null,
+    "status" text not null,
+    "notes" text,
+    "price" integer not null,
+    "createdAt" text not null default current_timestamp,
+    "updatedAt" text not null default current_timestamp,
+    "clinicId" integer not null references "clinic" ("id") on delete cascade,
+    "clientId" text not null references "user" ("id") on delete cascade,
+    "practitionerId" integer not null references "practitioner" (
+        "id"
+    ) on delete cascade,
+    "treatmentId" integer not null references "treatment" (
+        "id"
+    ) on delete cascade,
+    "roomId" integer not null references "room" ("id") on delete cascade
 )
