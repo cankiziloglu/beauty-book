@@ -1,8 +1,13 @@
 import { betterAuth } from "better-auth";
-import db from "@/db";
+import { sendEmail } from "./email";
+import { openAPI } from "better-auth/plugins";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import db from "@/db/db";
 
 export const auth = betterAuth({
-  database: db,
+  database: drizzleAdapter(db, {
+    provider: "pg",
+  }),
   user: {
     additionalFields: {
       role: {
@@ -15,6 +20,19 @@ export const auth = betterAuth({
   experimental: { joins: true },
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url, token }, request) => {
+      void sendEmail({
+        to: user.email,
+        subject: "Verify your email address",
+        url: url,
+        type: "verifying",
+        user: user.name,
+      });
+    },
   },
   socialProviders: {
     github: {
@@ -26,4 +44,5 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  plugins: [openAPI()],
 });

@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:alpine3.22
+    restart: unless-stopped
+    container_name: beauty-book-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_USER=user
+      - POSTGRES_DB=beauty-book

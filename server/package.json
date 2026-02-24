@@ -1,13 +1,24 @@
 {
   "name": "server",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.ts",
+    "db:up": "docker compose up -d",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^4.0.1",
     "better-auth": "^1.4.18",
-    "hono": "^4.11.9"
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.9",
+    "pg": "^8.18.0",
+    "postmark": "^4.0.7",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.9"
   }
 }
