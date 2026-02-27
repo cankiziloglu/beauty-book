@@ -1,0 +1,219 @@
+Enum "dayOfWeek" {
+  "1"
+  "2"
+  "3"
+  "4"
+  "5"
+  "6"
+  "7"
+}
+
+Enum "status" {
+  "confirmed"
+  "cancelled"
+  "no-show"
+  "completed"
+  "late-cancel"
+}
+
+Table "account" {
+  "id" text [pk, not null]
+  "account_id" text [not null]
+  "provider_id" text [not null]
+  "user_id" text [not null]
+  "access_token" text
+  "refresh_token" text
+  "id_token" text
+  "access_token_expires_at" timestamp
+  "refresh_token_expires_at" timestamp
+  "scope" text
+  "password" text
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+
+  Indexes {
+    user_id [type: btree, name: "account_userId_idx"]
+  }
+}
+
+Table "appointment" {
+  "id" int4 [pk, not null, increment]
+  "date" date [not null]
+  "startTime" timetz [not null]
+  "endTime" timetz [not null]
+  "bufferEndTime" timetz [not null]
+  "status" status
+  "notes" text
+  "priceCents" int4 [not null]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "clinicId" int4 [not null]
+  "clientId" text [not null]
+  "practitionerId" int4 [not null]
+  "treatmentId" int4 [not null]
+  "roomId" int4 [not null]
+}
+
+Table "availability" {
+  "id" int4 [pk, not null, increment]
+  "dayOfWeek" dayOfWeek
+  "startTime" timetz [not null]
+  "endTime" timetz [not null]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "practitionerId" int4 [not null]
+}
+
+Table "clinic" {
+  "id" int4 [pk, not null, increment]
+  "name" text [not null]
+  "slug" text [unique, not null]
+  "email" text [unique, not null]
+  "phoneNumber" text [not null]
+  "address" text [not null]
+  "timezone" text [not null]
+  "minAdvanceHours" int4 [not null]
+  "maxAdvanceDays" int4 [not null]
+  "cancellationHours" int4 [not null]
+  "isActive" bool [not null, default: true]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "adminId" text [not null]
+}
+
+Table "practitioner" {
+  "id" int4 [pk, not null, increment]
+  "name" text [not null]
+  "bio" text [not null]
+  "isActive" bool [not null, default: true]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "clinicId" int4 [not null]
+}
+
+Table "practitionerTreatment" {
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "practitionerId" int4 [not null]
+  "treatmentId" int4 [not null]
+
+  Indexes {
+    (practitionerId, treatmentId) [pk, type: btree, name: "practitionerTreatment_practitionerId_treatmentId_pk"]
+  }
+}
+
+Table "room" {
+  "id" int4 [pk, not null, increment]
+  "name" text [not null]
+  "isActive" bool [not null, default: true]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "clinicId" int4 [not null]
+}
+
+Table "roomTreatment" {
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "roomId" int4 [not null]
+  "treatmentId" int4 [not null]
+
+  Indexes {
+    (roomId, treatmentId) [pk, type: btree, name: "roomTreatment_roomId_treatmentId_pk"]
+  }
+}
+
+Table "session" {
+  "id" text [pk, not null]
+  "expires_at" timestamp [not null]
+  "token" text [unique, not null]
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+  "ip_address" text
+  "user_agent" text
+  "user_id" text [not null]
+
+  Indexes {
+    user_id [type: btree, name: "session_userId_idx"]
+  }
+}
+
+Table "treatment" {
+  "id" int4 [pk, not null, increment]
+  "name" text [not null]
+  "description" text
+  "duration" int4 [not null]
+  "buffer" int4 [not null]
+  "priceCents" int4 [not null]
+  "isActive" bool [not null, default: true]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "clinicId" int4 [not null]
+}
+
+Table "unavailability" {
+  "id" int4 [pk, not null, increment]
+  "dayOfWeek" dayOfWeek
+  "startTime" timetz [not null]
+  "endTime" timetz [not null]
+  "createdAt" timestamp [not null]
+  "updatedAt" timestamp [not null]
+  "practitionerId" int4 [not null]
+}
+
+Table "user" {
+  "id" text [pk, not null]
+  "name" text [not null]
+  "email" text [unique, not null]
+  "email_verified" bool [not null, default: false]
+  "image" text
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+  "role" text [not null, default: 'user']
+}
+
+Table "verification" {
+  "id" text [pk, not null]
+  "identifier" text [not null]
+  "value" text [not null]
+  "expires_at" timestamp [not null]
+  "created_at" timestamp [not null]
+  "updated_at" timestamp [not null]
+
+  Indexes {
+    identifier [type: btree, name: "verification_identifier_idx"]
+  }
+}
+
+Ref "account_user_id_user_id_fk":"user"."id" < "account"."user_id" [delete: cascade]
+
+Ref "appointment_clientId_user_id_fk":"user"."id" < "appointment"."clientId"
+
+Ref "appointment_clinicId_clinic_id_fk":"clinic"."id" < "appointment"."clinicId"
+
+Ref "appointment_practitionerId_practitioner_id_fk":"practitioner"."id" < "appointment"."practitionerId"
+
+Ref "appointment_roomId_room_id_fk":"room"."id" < "appointment"."roomId"
+
+Ref "appointment_treatmentId_treatment_id_fk":"treatment"."id" < "appointment"."treatmentId"
+
+Ref "availability_practitionerId_practitioner_id_fk":"practitioner"."id" < "availability"."practitionerId" [delete: cascade]
+
+Ref "clinic_adminId_user_id_fk":"user"."id" < "clinic"."adminId" [delete: cascade]
+
+Ref "practitioner_clinicId_clinic_id_fk":"clinic"."id" < "practitioner"."clinicId" [delete: cascade]
+
+Ref "practitionerTreatment_practitionerId_practitioner_id_fk":"practitioner"."id" < "practitionerTreatment"."practitionerId" [delete: cascade]
+
+Ref "practitionerTreatment_treatmentId_treatment_id_fk":"treatment"."id" < "practitionerTreatment"."treatmentId" [delete: cascade]
+
+Ref "room_clinicId_clinic_id_fk":"clinic"."id" < "room"."clinicId" [delete: cascade]
+
+Ref "roomTreatment_roomId_room_id_fk":"room"."id" < "roomTreatment"."roomId" [delete: cascade]
+
+Ref "roomTreatment_treatmentId_treatment_id_fk":"treatment"."id" < "roomTreatment"."treatmentId" [delete: cascade]
+
+Ref "session_user_id_user_id_fk":"user"."id" < "session"."user_id" [delete: cascade]
+
+Ref "treatment_clinicId_clinic_id_fk":"clinic"."id" < "treatment"."clinicId" [delete: cascade]
+
+Ref "unavailability_practitionerId_practitioner_id_fk":"practitioner"."id" < "unavailability"."practitionerId" [delete: cascade]
