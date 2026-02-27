@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import onError from "./middleware/error";
 import clinic from "./routes/clinic.route";
 import appointment from "./routes/appointment.route";
 import practitioner from "./routes/practitioner.route";
 import treatment from "./routes/treatment.route";
 import room from "./routes/room.route";
+import authRoute from "./routes/auth.route";
 
 const app = new Hono({ strict: false }).basePath("/api");
 
@@ -17,9 +17,24 @@ app.notFound((c) => {
     path: `${c.req.path}`,
   });
 });
-app.onError(onError);
+app.onError((err, c) => {
+  return c.json({
+    error: `${err.name}`,
+    message: `${err.message}`,
+    cause: `${err.cause}`,
+    path: `${c.req.path}`,
+    stack: `${err.stack}`,
+  });
+});
 
-const routes = [clinic, appointment, practitioner, treatment, room] as const;
+const routes = [
+  authRoute,
+  clinic,
+  appointment,
+  practitioner,
+  treatment,
+  room,
+] as const;
 
 routes.forEach((route) => {
   app.route("/", route);
