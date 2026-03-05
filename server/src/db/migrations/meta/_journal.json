@@ -8,6 +8,41 @@
       "when": 1772130406342,
       "tag": "0000_acoustic_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772428427423,
+      "tag": "0001_tiny_dormammu",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772431734681,
+      "tag": "0002_nosy_nomad",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772600860679,
+      "tag": "0003_naive_juggernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772602651227,
+      "tag": "0004_uneven_starjammers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772602697042,
+      "tag": "0005_giant_johnny_storm",
+      "breakpoints": true
     }
   ]
 }
