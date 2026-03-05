@@ -7,13 +7,11 @@ import treatment from "./routes/treatment.route";
 import room from "./routes/room.route";
 import authRoute from "./routes/auth.route";
 import corsMiddleware from "./middleware/cors.middleware";
-import { authMiddleware } from "./middleware/auth.middleware";
 
 const app = new Hono({ strict: false }).basePath("/api");
 
 app.use(logger());
 app.use(corsMiddleware());
-app.use(authMiddleware);
 
 app.notFound((c) => {
   return c.json({
