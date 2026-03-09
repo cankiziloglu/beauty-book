@@ -1,0 +1,21 @@
+name: sign-up
+description: Sign up to app
+method: POST
+url: http://localhost:3000/api/auth/sign-up/email
+body:
+  content: |-
+    {
+      "name": "Can Kiziloglu",
+      "email": "membercgk@gmail.com",
+      "password": "password123",
+      "image": "",
+      "callbackURL": "",
+      "role": "admin",
+      "rememberMe": true
+    }
+  content_type: application/json
+headers:
+- name: Content-Type
+  value: application/json
+- name: Origin
+  value: http://localhost:3000

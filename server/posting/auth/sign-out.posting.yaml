@@ -1,0 +1,7 @@
+name: sign-out
+description: Sign out of app
+method: POST
+url: http://localhost:3000/api/auth/sign-out
+headers:
+- name: Origin
+  value: http://localhost:3000

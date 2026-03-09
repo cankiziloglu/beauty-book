@@ -1,0 +1,26 @@
+name: register
+description: Register a new clinic
+method: POST
+url: http://localhost:3000/api/clinic/register
+body:
+  form_data:
+  - name: name
+    value: Glow Studio
+  - name: email
+    value: membercgk@gmail.com
+  - name: phoneNumber
+    value: '5326360372'
+  - name: address
+    value: 6660 sok 14/34 Karsiyaka Izmir
+  - name: timezone
+    value: Europe/Istanbul
+  - name: minAdvanceHours
+    value: '2'
+  - name: maxAdvanceDays
+    value: '7'
+  - name: cancellationHours
+    value: '2'
+  content_type: application/x-www-form-urlencoded
+headers:
+- name: content-type
+  value: application/x-www-form-urlencoded
