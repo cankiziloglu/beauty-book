@@ -1,5 +1,16 @@
 import { auth } from "./auth";
 
+export type SuccessResponse<T = void> = {
+  success: true;
+  message: string;
+} & (T extends void ? {} : { data: T });
+
+export type ErrorResponse = {
+  success: false;
+  message: string;
+  data: string | undefined;
+};
+
 export type SendEmail = {
   to: string;
   subject: string;
@@ -17,10 +28,7 @@ export type AuthType = {
 };
 
 export type ClinicType = {
-	Variables: {
-		clinicId: number
-	}
-}
-
-
-// TODO: create select and insert types from drizzle schema
+  Variables: {
+    clinicId: number;
+  };
+};
