@@ -7,6 +7,8 @@ import treatment from "./routes/treatment.route";
 import room from "./routes/room.route";
 import authRoute from "./routes/auth.route";
 import corsMiddleware from "./middleware/cors.middleware";
+import { HTTPException } from "hono/http-exception";
+import { ErrorResponse } from "./lib/types";
 
 const app = new Hono({ strict: false }).basePath("/api");
 
@@ -14,19 +16,34 @@ app.use(logger());
 app.use(corsMiddleware());
 
 app.notFound((c) => {
-  return c.json({
-    message: "404 Not Found",
-    path: `${c.req.path}`,
-  });
+  return c.json(
+    {
+      message: "404 Not Found",
+      path: `${c.req.path}`,
+    },
+    404,
+  );
 });
 app.onError((err, c) => {
-  return c.json({
-    error: `${err.name}`,
-    message: `${err.message}`,
-    cause: `${err.cause}`,
-    path: `${c.req.path}`,
-    stack: `${err.stack}`,
-  });
+  if (err instanceof HTTPException) {
+    return c.json<ErrorResponse>(
+      {
+        success: false,
+        message: err.message,
+        data: process.env.NODE_ENV === "development" ? err.stack : "Error",
+      },
+      err.status,
+    );
+  } else {
+    return c.json<ErrorResponse>(
+      {
+        success: false,
+        message: "Internal Server Error",
+        data: "Error",
+      },
+      500,
+    );
+  }
 });
 
 const routes = [
