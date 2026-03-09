@@ -1,6 +1,6 @@
 import db from "@/db/db";
 import { clinic } from "@/db/schema";
-import { Clinics, NewClinic } from "@/lib/validators";
+import { Clinics, NewClinic, UpdateClinic } from "@/lib/validators";
 import { eq } from "drizzle-orm";
 import slugify from "slugify";
 
@@ -28,44 +28,44 @@ export async function getAllClinics() {
       data: error,
     };
   }
-};
+}
 
 export async function getClinic(id: number) {
-	try {
-		const clinicData = await db
-			.select()
-			.from(clinic)
-			.where(eq(clinic.id, id))
-			.limit(1);
-		if (clinicData.length === 0) {
-			return {
-				success: false,
-				message: "Clinic not found",
-				data: null,
-			};
-		}
-		return {
-			success: true,
-			message: "Get clinic",
-			data: clinicData[0],
-		};
-
-	} catch (error) {
-		return {
-			success: false,
-			message: "An error occurred while fetching the clinic",
-			data: error,
-		};
-	}
+  try {
+    const clinicData = await db
+      .select()
+      .from(clinic)
+      .where(eq(clinic.id, id))
+      .limit(1);
+    if (clinicData.length === 0) {
+      return {
+        success: false,
+        message: "Clinic not found",
+        data: null,
+      };
+    }
+    return {
+      success: true,
+      message: "Get clinic",
+      data: clinicData[0],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occurred while fetching the clinic",
+      data: error,
+    };
+  }
 }
 
 export async function createClinic(data: NewClinic) {
   try {
+    const slug = slugify(data.name);
     const newClinic = await db
       .insert(clinic)
       .values({
         name: data.name,
-        slug: slugify(data.name),
+        slug: slug,
         email: data.email,
         phoneNumber: data.phoneNumber,
         address: data.address,
@@ -82,7 +82,28 @@ export async function createClinic(data: NewClinic) {
     return {
       success: true,
       message: "Clinic registered",
-      data: newClinic,
+      data: newClinic[0],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+export async function updateClinic(id: number, data: UpdateClinic) {
+  try {
+    const update = await db
+      .update(clinic)
+      .set(data)
+      .where(eq(clinic.id, id))
+      .returning({ id: clinic.id });
+    return {
+      success: true,
+      message: "Clinic details updated",
+      data: { ...update[0], ...data },
     };
   } catch (error) {
     return {
