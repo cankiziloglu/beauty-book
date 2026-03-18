@@ -1,6 +1,6 @@
 import db from "@/db/db";
 import { room, roomTreatment, treatment } from "@/db/schema";
-import { NewRoom, Room, Rooms } from "@/lib/validators";
+import { NewRoom, Room, Rooms, UpdateRoom } from "@/lib/validators";
 import { and, desc, eq } from "drizzle-orm";
 
 
@@ -26,6 +26,7 @@ export async function getRooms(clinicId: number) {
   }
 }
 
+// TODO: check if id is valid before reading
 export async function getRoom(clinicId: number, id: number) {
  try {
    const roomDetail: Room[] = await db
@@ -82,6 +83,88 @@ export async function createRoom(data: NewRoom) {
       success: true,
       message: "Room created",
       data: newRoom[0],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+// TODO: check if id is valid before updating, activating or deactivating
+export async function updateRoom(clinicId: number, id: number, data: UpdateRoom) {
+  try {
+    const updatedRoom = await db
+      .update(room)
+      .set({ ...data })
+      .where(
+        and(
+          eq(room.clinicId, clinicId),
+          eq(room.id, id),
+        ),
+      )
+      .returning({
+        id: room.id,
+        name: room.name,
+        isActive: room.isActive,
+      });
+    return {
+      success: true,
+      message: "Room updated",
+      data: updatedRoom[0],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+// TODO: check if id is valid before updating, activating or deactivating
+// TODO: check if room is assigned to any treatment before deactivating
+export async function deactivateRoom(clinicId: number, id: number) {
+  try {
+    await db
+      .update(room)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(room.clinicId, clinicId),
+          eq(room.id, id),
+        ),
+      );
+    return {
+      success: true,
+      message: "Room deactivated",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+// TODO: check if id is valid before updating, activating or deactivating
+export async function activateRoom(clinicId: number, id: number) {
+  try {
+    await db
+      .update(room)
+      .set({ isActive: true })
+      .where(
+        and(
+          eq(room.clinicId, clinicId),
+          eq(room.id, id),
+        ),
+      );
+    return {
+      success: true,
+      message: "Room activated",
     };
   } catch (error) {
     return {
