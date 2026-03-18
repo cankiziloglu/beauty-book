@@ -1,0 +1,3 @@
+name: get-treatments
+description: Get all treatments
+url: http://localhost:3000/api/clinic/Glow-Studio/treatment
