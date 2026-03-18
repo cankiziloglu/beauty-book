@@ -1,9 +1,10 @@
 import db from "@/db/db";
-import { practitioner, practitionerTreatment, treatment } from "@/db/schema";
-import { NewPractitioner, Practitioner, Practitioners } from "@/lib/validators";
+import { appointment, practitioner, practitionerTreatment, treatment } from "@/db/schema";
+import { SuccessResponse, ErrorResponse } from "@/lib/types";
+import { NewPractitioner, Practitioner, Practitioners, UpdatePractitioner } from "@/lib/validators";
 import { and, desc, eq } from "drizzle-orm";
 
-export async function getPractitioners(clinicId: number) {
+export async function getPractitioners(clinicId: number): Promise<SuccessResponse<Practitioners[]> | ErrorResponse> {
   try {
     const practitioners: Practitioners[] = await db
       .select({
@@ -18,19 +19,21 @@ export async function getPractitioners(clinicId: number) {
       );
     return {
       success: true,
+      status: 200,
       message: "Get all practitioners",
       data: practitioners,
     };
   } catch (error) {
     return {
       success: false,
+      status: 500,
       message: "An error occured reading data",
       data: error,
     };
   }
 }
 
-export async function createPractitioner(data: NewPractitioner) {
+export async function createPractitioner(data: NewPractitioner): Promise<SuccessResponse<{ id: number }> | ErrorResponse> {
   try {
     const newPractitioner = await db
       .insert(practitioner)
@@ -44,19 +47,21 @@ export async function createPractitioner(data: NewPractitioner) {
       });
     return {
       success: true,
+      status: 201,
       message: "Practitioner created",
       data: newPractitioner[0],
     };
   } catch (error) {
     return {
       success: false,
+      status: 500,
       message: "An error occured writing to the database",
       data: error,
     };
   }
 }
 
-export async function getPractitioner(clinicId: number, id: number) {
+export async function getPractitioner(clinicId: number, id: number): Promise<SuccessResponse<Practitioner> | ErrorResponse> {
   try {
     const practitionerDetail: Practitioner[] = await db
       .select({
@@ -85,15 +90,328 @@ export async function getPractitioner(clinicId: number, id: number) {
         eq(treatment.id, practitionerTreatment.treatmentId),
       )
       .orderBy(desc(practitionerTreatment.createdAt));
+    if (practitionerDetail.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: practitionerDetail,
+      };
+    }
     return {
       success: true,
+      status: 200,
       message: "Practitioner details retrieved",
       data: practitionerDetail[0],
+    }
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured reading data",
+      data: error,
+    };
+  }
+}
+
+export async function updatePractitioner(clinicId: number, id: number, data: UpdatePractitioner): Promise<SuccessResponse<Practitioners> | ErrorResponse> {
+  try {
+    const practitionerToUpdate = await db
+      .select()
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      );
+    if (practitionerToUpdate.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: practitionerToUpdate,
+      };
+    }
+    const updatedPractitioner = await db
+      .update(practitioner)
+      .set({ ...data })
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      )
+      .returning({
+        id: practitioner.id,
+        name: practitioner.name,
+        bio: practitioner.bio,
+        isActive: practitioner.isActive,
+      });
+    return {
+      success: true,
+      status: 200,
+      message: "Practitioner updated",
+      data: updatedPractitioner[0],
     };
   } catch (error) {
     return {
       success: false,
-      message: "An error occured reading data",
+      status: 500,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+export async function deactivatePractitioner(clinicId: number, id: number): Promise<SuccessResponse | ErrorResponse> {
+  try {
+    const practitionerToDeactivate = await db
+      .select()
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      );
+    if (practitionerToDeactivate.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: practitionerToDeactivate,
+      };
+    }
+    const upcomingAppointments = await db
+      .select()
+      .from(appointment)
+      .where(
+        and(
+          eq(appointment.clinicId, clinicId),
+          eq(appointment.practitionerId, id),
+        ),
+      );
+    if (upcomingAppointments.length > 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Practitioner has upcoming appointments and cannot be deactivated. Try changing the appointments first.",
+        data: upcomingAppointments,
+      };
+    }
+    await db
+      .update(practitioner)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      );
+    return {
+      success: true,
+      status: 200,
+      message: "Practitioner deactivated",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+export async function activatePractitioner(clinicId: number, id: number): Promise<SuccessResponse | ErrorResponse> {
+  try {
+    const practitionerToActivate = await db
+      .select()
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      );
+    if (practitionerToActivate.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: practitionerToActivate,
+      };
+    }
+    await db
+      .update(practitioner)
+      .set({ isActive: true })
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+        ),
+      );
+    return {
+      success: true,
+      status: 200,
+      message: "Practitioner activated",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+export async function addTreatmentToPractitioner(clinicId: number, practitionerId: number, treatmentId: number): Promise<SuccessResponse | ErrorResponse> {
+  try {
+    const validPractitioner = await db
+      .select()
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.id, practitionerId),
+          eq(practitioner.clinicId, clinicId)
+        )
+      );
+    if (validPractitioner.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: validPractitioner,
+      };
+    }
+    const validTreatment = await db
+      .select()
+      .from(treatment)
+      .where(
+        and(
+          eq(treatment.id, treatmentId),
+          eq(treatment.clinicId, clinicId)
+        )
+      );
+    if (validTreatment.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid treatment id",
+        data: validTreatment,
+      };
+    }
+    const existingLink = await db
+      .select()
+      .from(practitionerTreatment)
+      .where(
+        and(
+          eq(practitionerTreatment.practitionerId, practitionerId),
+          eq(practitionerTreatment.treatmentId, treatmentId),
+        )
+      );
+    if (existingLink.length > 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Treatment is already linked to practitioner",
+        data: existingLink,
+      };
+    }
+    await db
+      .insert(practitionerTreatment)
+      .values({
+        practitionerId,
+        treatmentId,
+      });
+    return {
+      success: true,
+      status: 200,
+      message: "Treatment added to practitioner",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured writing to the database",
+      data: error,
+    };
+  }
+}
+
+export async function removeTreatmentFromPractitioner(clinicId: number, practitionerId: number, treatmentId: number): Promise<SuccessResponse | ErrorResponse> {
+  try {
+    const validPractitioner = await db
+      .select()
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.id, practitionerId),
+          eq(practitioner.clinicId, clinicId)
+        )
+      );
+    if (validPractitioner.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: validPractitioner,
+      };
+    }
+    const validTreatment = await db
+      .select()
+      .from(treatment)
+      .where(
+        and(
+          eq(treatment.id, treatmentId),
+          eq(treatment.clinicId, clinicId)
+        )
+      );
+    if (validTreatment.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid treatment id",
+        data: validTreatment,
+      };
+    }
+    const existingLink = await db
+      .select()
+      .from(practitionerTreatment)
+      .where(
+        and(
+          eq(practitionerTreatment.practitionerId, practitionerId),
+          eq(practitionerTreatment.treatmentId, treatmentId),
+        )
+      );
+    if (existingLink.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Treatment is not linked to practitioner",
+        data: existingLink,
+      };
+    }
+    await db
+      .delete(practitionerTreatment)
+      .where(
+        and(
+          eq(practitionerTreatment.practitionerId, practitionerId),
+          eq(practitionerTreatment.treatmentId, treatmentId),
+        ),
+      );
+    return {
+      success: true,
+      status: 200,
+      message: "Treatment removed from practitioner",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured writing to the database",
       data: error,
     };
   }

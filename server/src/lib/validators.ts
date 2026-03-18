@@ -72,12 +72,6 @@ export type NewPractitioner = z.infer<typeof createPractitionerSchema> & {
 export const updatePractitionerSchema = createUpdateSchema(practitioner);
 export type UpdatePractitioner = z.infer<typeof updatePractitionerSchema>;
 
-export const createPractitionerTreatmentSchema = createInsertSchema(
-  practitionerTreatment,
-);
-export const updatePractitionerTreatmentSchema = createUpdateSchema(
-  practitionerTreatment,
-);
 
 export const getTreatmentSchema = createSelectSchema(treatment).pick({
   id: true,
@@ -143,3 +137,11 @@ export type NewRoom = z.infer<typeof createRoomSchema> & {
 
 export const updateRoomSchema = createUpdateSchema(room);
 export type UpdateRoom = z.infer<typeof updateRoomSchema>;
+
+
+export const createPractitionerTreatmentSchema = createInsertSchema(
+  practitionerTreatment,
+);
+export const updatePractitionerTreatmentSchema = createUpdateSchema(
+  practitionerTreatment,
+);
