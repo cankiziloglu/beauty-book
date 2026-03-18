@@ -32,3 +32,4 @@ export type ClinicType = {
     clinicId: number;
   };
 };
+
