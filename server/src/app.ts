@@ -29,6 +29,7 @@ app.onError((err, c) => {
     return c.json<ErrorResponse>(
       {
         success: false,
+        status: err.status,
         message: err.message,
         data: process.env.NODE_ENV === "development" ? err.stack : "Error",
       },
@@ -38,6 +39,7 @@ app.onError((err, c) => {
     return c.json<ErrorResponse>(
       {
         success: false,
+        status: 500,
         message: "Internal Server Error",
         data: "Error",
       },

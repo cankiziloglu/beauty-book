@@ -1,14 +1,17 @@
+import { ContentfulStatusCode } from "hono/utils/http-status";
 import { auth } from "./auth";
 
 export type SuccessResponse<T = void> = {
   success: true;
+  status: ContentfulStatusCode;
   message: string;
 } & (T extends void ? {} : { data: T });
 
 export type ErrorResponse = {
   success: false;
+  status: ContentfulStatusCode;
   message: string;
-  data: string | undefined;
+  data: string | unknown | undefined;
 };
 
 export type SendEmail = {
@@ -32,4 +35,3 @@ export type ClinicType = {
     clinicId: number;
   };
 };
-
