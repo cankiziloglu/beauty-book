@@ -1,0 +1,3 @@
+name: get-room
+description: Get room details
+url: http://localhost:3000/api/clinic/Glow-Studio/room/1

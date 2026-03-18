@@ -1,0 +1,12 @@
+name: new-room
+description: create new room
+method: POST
+url: http://localhost:3000/api/clinic/Glow-Studio/room/new
+body:
+  form_data:
+  - name: name
+    value: Open Floor 1
+  content_type: application/x-www-form-urlencoded
+headers:
+- name: Content-Type
+  value: application/x-www-form-urlencoded
