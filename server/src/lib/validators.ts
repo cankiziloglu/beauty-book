@@ -2,6 +2,7 @@ import {
   clinic,
   practitioner,
   practitionerTreatment,
+  room,
   treatment,
 } from "@/db/schema";
 import {
@@ -119,3 +120,26 @@ export const updateTreatmentSchema = createUpdateSchema(treatment, {
   priceCents: z.coerce.number().nonnegative().optional(),
 });
 export type UpdateTreatment = z.infer<typeof updateTreatmentSchema>;
+
+
+export const getRoomSchema = createSelectSchema(room).pick({
+  id: true,
+  name: true,
+  isActive: true
+});
+export type Rooms = z.infer<typeof getRoomSchema>;
+
+export type Room = Rooms & {
+  treatmentId: number | null;
+  treatmentName: string | null;
+};
+
+export const createRoomSchema = createInsertSchema(room).omit({
+  clinicId: true,
+});
+export type NewRoom = z.infer<typeof createRoomSchema> & {
+  clinicId: number;
+};
+
+export const updateRoomSchema = createUpdateSchema(room);
+export type UpdateRoom = z.infer<typeof updateRoomSchema>;
