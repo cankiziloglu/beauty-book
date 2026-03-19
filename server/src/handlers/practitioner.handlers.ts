@@ -202,6 +202,7 @@ export async function getActivePractitioner(clinicId: number, id: number): Promi
 
 export async function updatePractitioner(clinicId: number, id: number, data: UpdatePractitioner): Promise<SuccessResponse<Practitioners> | ErrorResponse> {
   try {
+    // check if practitioner id is valid before updating
     const practitionerToUpdate = await db
       .select()
       .from(practitioner)
@@ -219,6 +220,7 @@ export async function updatePractitioner(clinicId: number, id: number, data: Upd
         data: practitionerToUpdate,
       };
     }
+    // update practitioner with new data
     const updatedPractitioner = await db
       .update(practitioner)
       .set({ ...data })
@@ -252,6 +254,7 @@ export async function updatePractitioner(clinicId: number, id: number, data: Upd
 
 export async function deactivatePractitioner(clinicId: number, id: number): Promise<SuccessResponse | ErrorResponse> {
   try {
+    // check if practitioner id is valid before deactivating
     const practitionerToDeactivate = await db
       .select()
       .from(practitioner)
@@ -269,6 +272,7 @@ export async function deactivatePractitioner(clinicId: number, id: number): Prom
         data: practitionerToDeactivate,
       };
     }
+    // check if practitioner has any upcoming appointments before deactivating
     const upcomingAppointments = await db
       .select()
       .from(appointment)
@@ -276,6 +280,7 @@ export async function deactivatePractitioner(clinicId: number, id: number): Prom
         and(
           eq(appointment.clinicId, clinicId),
           eq(appointment.practitionerId, id),
+          eq(appointment.status, "confirmed"),
         ),
       );
     if (upcomingAppointments.length > 0) {
@@ -286,6 +291,7 @@ export async function deactivatePractitioner(clinicId: number, id: number): Prom
         data: upcomingAppointments,
       };
     }
+    // deactivate practitioner
     await db
       .update(practitioner)
       .set({ isActive: false })
@@ -312,6 +318,7 @@ export async function deactivatePractitioner(clinicId: number, id: number): Prom
 
 export async function activatePractitioner(clinicId: number, id: number): Promise<SuccessResponse | ErrorResponse> {
   try {
+    // check if practitioner id is valid before activating
     const practitionerToActivate = await db
       .select()
       .from(practitioner)
@@ -329,6 +336,7 @@ export async function activatePractitioner(clinicId: number, id: number): Promis
         data: practitionerToActivate,
       };
     }
+    // activate practitioner
     await db
       .update(practitioner)
       .set({ isActive: true })
@@ -355,6 +363,7 @@ export async function activatePractitioner(clinicId: number, id: number): Promis
 
 export async function addTreatmentToPractitioner(clinicId: number, practitionerId: number, treatmentId: number): Promise<SuccessResponse | ErrorResponse> {
   try {
+    // check if practitioner id is valid before adding treatment
     const validPractitioner = await db
       .select()
       .from(practitioner)
@@ -372,23 +381,26 @@ export async function addTreatmentToPractitioner(clinicId: number, practitionerI
         data: validPractitioner,
       };
     }
+    // check if treatment id is valid and active before adding treatment
     const validTreatment = await db
       .select()
       .from(treatment)
       .where(
         and(
           eq(treatment.id, treatmentId),
-          eq(treatment.clinicId, clinicId)
+          eq(treatment.clinicId, clinicId),
+          eq(treatment.isActive, true)
         )
       );
     if (validTreatment.length === 0) {
       return {
         success: false,
         status: 400,
-        message: "Invalid treatment id",
+        message: "Invalid treatment id or treatment is not active",
         data: validTreatment,
       };
     }
+    // check if treatment is already linked to practitioner before adding treatment
     const existingLink = await db
       .select()
       .from(practitionerTreatment)
@@ -406,6 +418,7 @@ export async function addTreatmentToPractitioner(clinicId: number, practitionerI
         data: existingLink,
       };
     }
+    // add treatment to practitioner
     await db
       .insert(practitionerTreatment)
       .values({
@@ -429,6 +442,7 @@ export async function addTreatmentToPractitioner(clinicId: number, practitionerI
 
 export async function removeTreatmentFromPractitioner(clinicId: number, practitionerId: number, treatmentId: number): Promise<SuccessResponse | ErrorResponse> {
   try {
+    // check if practitioner id is valid before adding treatment
     const validPractitioner = await db
       .select()
       .from(practitioner)
@@ -446,6 +460,7 @@ export async function removeTreatmentFromPractitioner(clinicId: number, practiti
         data: validPractitioner,
       };
     }
+    // check if treatment id is valid before removing treatment
     const validTreatment = await db
       .select()
       .from(treatment)
@@ -463,6 +478,7 @@ export async function removeTreatmentFromPractitioner(clinicId: number, practiti
         data: validTreatment,
       };
     }
+    // check if treatment is linked to practitioner before removing treatment
     const existingLink = await db
       .select()
       .from(practitionerTreatment)
@@ -480,6 +496,7 @@ export async function removeTreatmentFromPractitioner(clinicId: number, practiti
         data: existingLink,
       };
     }
+    // remove treatment from practitioner
     await db
       .delete(practitionerTreatment)
       .where(
