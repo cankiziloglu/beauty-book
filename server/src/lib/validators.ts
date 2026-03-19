@@ -82,10 +82,8 @@ export const getTreatmentSchema = createSelectSchema(treatment).pick({
 export type Treatments = z.infer<typeof getTreatmentSchema>;
 
 export type Treatment = Treatments & {
-  practitionerId: number | null;
-  practitionerName: string | null;
-  roomId: number | null;
-  roomName: string | null;
+  practitioners: Practitioners[];
+  rooms: Rooms[];
 };
 
 
@@ -121,8 +119,7 @@ export const getRoomSchema = createSelectSchema(room).pick({
 export type Rooms = z.infer<typeof getRoomSchema>;
 
 export type Room = Rooms & {
-  treatmentId: number | null;
-  treatmentName: string | null;
+  treatments: Treatments[];
 };
 
 export const createRoomSchema = createInsertSchema(room).omit({

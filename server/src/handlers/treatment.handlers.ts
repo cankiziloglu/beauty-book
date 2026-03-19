@@ -1,7 +1,7 @@
 import db from "@/db/db";
 import { appointment, practitioner, practitionerTreatment, room, roomTreatment, treatment } from "@/db/schema";
 import { SuccessResponse, ErrorResponse } from "@/lib/types";
-import { NewTreatment, Treatment, Treatments, UpdateTreatment } from "@/lib/validators";
+import { NewTreatment, Practitioners, Rooms, Treatment, Treatments, UpdateTreatment } from "@/lib/validators";
 import { and, desc, eq } from "drizzle-orm";
 
 
@@ -61,8 +61,15 @@ export async function getActiveTreatments(clinicId: number): Promise<SuccessResp
 
 export async function getTreatment(clinicId: number, id: number): Promise<SuccessResponse<Treatment> | ErrorResponse> {
  try {
-   // check if treatment id is valid before reading
-   const treatmentToGet = await db.select().from(treatment).where(
+   const treatmentToGet: Treatments[] = await db.select({
+      id: treatment.id,
+      name: treatment.name,
+      description: treatment.description,
+      duration: treatment.duration,
+      buffer: treatment.buffer,
+      priceCents: treatment.priceCents,
+      isActive: treatment.isActive
+    }).from(treatment).where(
     and(
       eq(treatment.clinicId, clinicId),
       eq(treatment.id, id),
@@ -72,54 +79,55 @@ export async function getTreatment(clinicId: number, id: number): Promise<Succes
      return {
        success: false,
        status: 400,
-      message: "Invalid treatment id",
-      data: null
+       message: "Invalid treatment id",
+       data: null
      }
    }
-   // if valid, read treatment details along with practitioner and room details
-   const treatmentDetail: Treatment[] = await db
+   const practitionersForTreatment: Practitioners[] = await db
     .select({
-       id: treatment.id,
-       name: treatment.name,
-       description: treatment.description,
-       duration: treatment.duration,
-       buffer: treatment.buffer,
-       priceCents: treatment.priceCents,
-       isActive: treatment.isActive,
-       practitionerId: practitionerTreatment.practitionerId,
-       practitionerName: practitioner.name,
-       roomId: roomTreatment.roomId,
-       roomName: room.name
+      id: practitioner.id,
+      name: practitioner.name,
+      bio: practitioner.bio,
+      isActive: practitioner.isActive,
     })
-     .from(treatment)
-     .where(
+    .from(practitioner)
+    .where(
       and(
-         eq(treatment.clinicId, clinicId),
-         eq(treatment.id, id),
-       ),
-    )
-     .leftJoin(
-       practitionerTreatment,
-       eq(practitionerTreatment.treatmentId, treatment.id),
-    )
-     .leftJoin(
-       practitioner,
-       eq(practitioner.id, practitionerTreatment.practitionerId),
-    )
-     .leftJoin(
-       roomTreatment,
-       eq(roomTreatment.treatmentId, treatment.id)
+        eq(practitionerTreatment.treatmentId, id),
+        eq(practitionerTreatment.practitionerId, practitioner.id),
+      ),
     )
     .leftJoin(
-      room,
-      eq(room.id, roomTreatment.roomId)
+      practitionerTreatment,
+      eq(practitionerTreatment.practitionerId, practitioner.id)
+    );
+   const roomsForTreatment: Rooms[] = await db
+    .select({
+      id: room.id,
+      name: room.name,
+      isActive: room.isActive,
+    })
+    .from(room)
+    .where(
+      and(
+        eq(roomTreatment.treatmentId, id),
+        eq(roomTreatment.roomId, room.id),
+      ),
     )
-    .orderBy(desc(practitionerTreatment.createdAt));
+    .leftJoin(
+      roomTreatment,
+      eq(roomTreatment.roomId, room.id)
+    );
+   const treatmentDetail: Treatment = {
+     ...treatmentToGet[0],
+     practitioners: practitionersForTreatment,
+      rooms: roomsForTreatment
+   }
    return {
      success: true,
      status: 200,
      message: "Treatment details retrieved",
-     data: treatmentDetail[0],
+     data: treatmentDetail,
    };
  } catch (error) {
    return {
@@ -134,7 +142,15 @@ export async function getTreatment(clinicId: number, id: number): Promise<Succes
 export async function getActiveTreatment(clinicId: number, id: number): Promise<SuccessResponse<Treatment> | ErrorResponse> {
  try {
    // check if treatment id is valid and treatment is active before reading
-   const treatmentToGet = await db.select().from(treatment).where(
+   const treatmentToGet: Treatments[] = await db.select({
+      id: treatment.id,
+      name: treatment.name,
+      description: treatment.description,
+      duration: treatment.duration,
+      buffer: treatment.buffer,
+      priceCents: treatment.priceCents,
+      isActive: treatment.isActive
+    }).from(treatment).where(
     and(
       eq(treatment.clinicId, clinicId),
       eq(treatment.id, id),
@@ -145,55 +161,57 @@ export async function getActiveTreatment(clinicId: number, id: number): Promise<
      return {
        success: false,
        status: 400,
-      message: "Invalid treatment id",
-      data: null
+       message: "Invalid treatment id",
+       data: null
      }
    }
-   // if valid, read treatment details along with practitioner and room details
-   const treatmentDetail: Treatment[] = await db
+   const practitionersForTreatment: Practitioners[] = await db
     .select({
-       id: treatment.id,
-       name: treatment.name,
-       description: treatment.description,
-       duration: treatment.duration,
-       buffer: treatment.buffer,
-       priceCents: treatment.priceCents,
-       isActive: treatment.isActive,
-       practitionerId: practitionerTreatment.practitionerId,
-       practitionerName: practitioner.name,
-       roomId: roomTreatment.roomId,
-       roomName: room.name
+      id: practitioner.id,
+      name: practitioner.name,
+      bio: practitioner.bio,
+      isActive: practitioner.isActive,
     })
-     .from(treatment)
-     .where(
+    .from(practitioner)
+    .where(
       and(
-         eq(treatment.clinicId, clinicId),
-         eq(treatment.id, id),
-         eq(treatment.isActive, true)
-       ),
-    )
-     .leftJoin(
-       practitionerTreatment,
-       eq(practitionerTreatment.treatmentId, treatment.id),
-    )
-     .leftJoin(
-       practitioner,
-       eq(practitioner.id, practitionerTreatment.practitionerId),
-    )
-     .leftJoin(
-       roomTreatment,
-       eq(roomTreatment.treatmentId, treatment.id)
+        eq(practitionerTreatment.treatmentId, id),
+        eq(practitionerTreatment.practitionerId, practitioner.id),
+        eq(practitioner.isActive, true)
+      ),
     )
     .leftJoin(
-      room,
-      eq(room.id, roomTreatment.roomId)
+      practitionerTreatment,
+      eq(practitionerTreatment.practitionerId, practitioner.id)
+    );
+   const roomsForTreatment: Rooms[] = await db
+    .select({
+      id: room.id,
+      name: room.name,
+      isActive: room.isActive,
+    })
+    .from(room)
+    .where(
+      and(
+        eq(roomTreatment.treatmentId, id),
+        eq(roomTreatment.roomId, room.id),
+        eq(room.isActive, true)
+      ),
     )
-    .orderBy(desc(practitionerTreatment.createdAt));
+    .leftJoin(
+      roomTreatment,
+      eq(roomTreatment.roomId, room.id)
+    );
+   const treatmentDetail: Treatment = {
+     ...treatmentToGet[0],
+     practitioners: practitionersForTreatment,
+      rooms: roomsForTreatment
+   }
    return {
      success: true,
      status: 200,
      message: "Treatment details retrieved",
-     data: treatmentDetail[0],
+     data: treatmentDetail,
    };
  } catch (error) {
    return {
