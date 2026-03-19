@@ -2,7 +2,7 @@ import db from "@/db/db";
 import { clinic } from "@/db/schema";
 import { SuccessResponse, ErrorResponse } from "@/lib/types";
 import { Clinics, NewClinic, UpdateClinic } from "@/lib/validators";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import slugify from "slugify";
 
 export async function getAllClinics(): Promise<SuccessResponse<Clinics[]> | ErrorResponse> {
@@ -39,6 +39,37 @@ export async function getClinic(id: number): Promise<SuccessResponse<Clinics> | 
       .select()
       .from(clinic)
       .where(eq(clinic.id, id))
+      .limit(1);
+    if (clinicData.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid clinic id",
+        data: null,
+      };
+    }
+    return {
+      success: true,
+      status: 200,
+      message: "Get clinic",
+      data: clinicData[0],
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occurred while fetching the clinic",
+      data: error,
+    };
+  }
+}
+
+export async function getActiveClinic(id: number): Promise<SuccessResponse<Clinics> | ErrorResponse> {
+  try {
+    const clinicData = await db
+      .select()
+      .from(clinic)
+      .where(and(eq(clinic.id, id), eq(clinic.isActive, true)))
       .limit(1);
     if (clinicData.length === 0) {
       return {

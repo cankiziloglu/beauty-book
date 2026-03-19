@@ -2,6 +2,7 @@ import {
   activateClinic,
   createClinic,
   deactivateClinic,
+  getActiveClinic,
   getAllClinics,
   getClinic,
   updateClinic,
@@ -16,15 +17,28 @@ import { zValidator } from "@hono/zod-validator";
 const clinic = createRoute();
 
 clinic
+  // Public Routes return active clinic's details only, while admin routes return inactive clinic's details.
+  // Public Routes
   .get("/clinic", async (c) => {
     const result = await getAllClinics();
     return c.json(result, result.status);
   })
   .get("/clinic/:slug", clinicMiddleware, async (c) => {
     const clinicId = c.get("clinicId");
-    const result = await getClinic(clinicId);
+    const result = await getActiveClinic(clinicId);
     return c.json(result, result.status);
   })
+  // Admin Routes
+  .get(
+    "/clinic/:slug",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const result = await getClinic(clinicId);
+      return c.json(result, result.status);
+    })
   .post(
     "/clinic/register",
     authMiddleware,
