@@ -1,0 +1,4 @@
+name: remove-room-from-treatment
+description: remove room from treatment
+method: DELETE
+url: http://localhost:3000/api/clinic/Glow-Studio/treatment/1/room/1

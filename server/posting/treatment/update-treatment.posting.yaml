@@ -1,0 +1,14 @@
+name: update-treatment
+description: update treatment
+method: PUT
+url: http://localhost:3000/api/clinic/Glow-Studio/treatment/1
+body:
+  form_data:
+  - name: description
+    value: ' updated'
+  - name: priceCents
+    value: '4000'
+  content_type: application/x-www-form-urlencoded
+headers:
+- name: Content-Type
+  value: application/x-www-form-urlencoded

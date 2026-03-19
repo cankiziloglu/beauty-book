@@ -1,0 +1,4 @@
+name: activate-treatment
+description: activate treatment
+method: PUT
+url: http://localhost:3000/api/clinic/Glow-Studio/treatment/1/activate

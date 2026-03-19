@@ -1,0 +1,4 @@
+name: add-room-to-treatment
+description: add room to treatment
+method: POST
+url: http://localhost:3000/api/clinic/Glow-Studio/treatment/1/room/1
