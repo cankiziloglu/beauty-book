@@ -54,10 +54,7 @@ export type Practitioners = z.infer<typeof getPractitionerSchema>;
 
 // This type is used for the getPractitioner handler, which returns the practitioner's treatments as well. The treatment fields are nullable because a practitioner may not have any treatments.
 export type Practitioner = Practitioners & {
-  treatmentId: number | null;
-  treatmentName: string | null;
-  description: string | null;
-  duration: number | null;
+  treatments: Treatments[]
 };
 
 export const createPractitionerSchema = createInsertSchema(practitioner).omit({

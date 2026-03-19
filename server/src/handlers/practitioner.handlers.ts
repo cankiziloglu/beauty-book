@@ -1,7 +1,7 @@
 import db from "@/db/db";
 import { appointment, practitioner, practitionerTreatment, treatment } from "@/db/schema";
 import { SuccessResponse, ErrorResponse } from "@/lib/types";
-import { NewPractitioner, Practitioner, Practitioners, UpdatePractitioner } from "@/lib/validators";
+import { NewPractitioner, Practitioner, Practitioners, Treatments, UpdatePractitioner } from "@/lib/validators";
 import { and, desc, eq } from "drizzle-orm";
 
 export async function getPractitioners(clinicId: number): Promise<SuccessResponse<Practitioners[]> | ErrorResponse> {
@@ -95,16 +95,25 @@ export async function createPractitioner(data: NewPractitioner): Promise<Success
 
 export async function getPractitioner(clinicId: number, id: number): Promise<SuccessResponse<Practitioner> | ErrorResponse> {
   try {
-    const practitionerDetail: Practitioner[] = await db
+    const treatmentsForPractitioner: Treatments[] = await db
+      .select({
+        id: treatment.id,
+        name: treatment.name,
+        description: treatment.description,
+        duration: treatment.duration,
+        buffer: treatment.buffer,
+        priceCents: treatment.priceCents,
+        isActive: treatment.isActive,
+      })
+      .from(treatment)
+      .leftJoin(practitionerTreatment, eq(practitionerTreatment.treatmentId, treatment.id))
+      .where(eq(practitionerTreatment.practitionerId, id));
+    const practitionerToGet: Practitioners[] = await db
       .select({
         id: practitioner.id,
         name: practitioner.name,
         bio: practitioner.bio,
-        isActive: practitioner.isActive,
-        treatmentId: practitionerTreatment.treatmentId,
-        treatmentName: treatment.name,
-        description: treatment.description,
-        duration: treatment.duration,
+        isActive: practitioner.isActive
       })
       .from(practitioner)
       .where(
@@ -112,29 +121,24 @@ export async function getPractitioner(clinicId: number, id: number): Promise<Suc
           eq(practitioner.clinicId, clinicId),
           eq(practitioner.id, id),
         ),
-      )
-      .leftJoin(
-        practitionerTreatment,
-        eq(practitionerTreatment.practitionerId, practitioner.id),
-      )
-      .leftJoin(
-        treatment,
-        eq(treatment.id, practitionerTreatment.treatmentId),
-      )
-      .orderBy(desc(practitionerTreatment.createdAt));
-    if (practitionerDetail.length === 0) {
+      );
+    if (practitionerToGet.length === 0) {
       return {
         success: false,
         status: 400,
         message: "Invalid practitioner id",
-        data: practitionerDetail,
+        data: null,
       };
+    }
+    const practitionerDetail: Practitioner = {
+      ...practitionerToGet[0],
+      treatments: treatmentsForPractitioner,
     }
     return {
       success: true,
       status: 200,
       message: "Practitioner details retrieved",
-      data: practitionerDetail[0],
+      data: practitionerDetail,
     }
   } catch (error) {
     return {
@@ -148,16 +152,25 @@ export async function getPractitioner(clinicId: number, id: number): Promise<Suc
 
 export async function getActivePractitioner(clinicId: number, id: number): Promise<SuccessResponse<Practitioner> | ErrorResponse> {
   try {
-    const practitionerDetail: Practitioner[] = await db
+    const treatmentsForPractitioner: Treatments[] = await db
+      .select({
+        id: treatment.id,
+        name: treatment.name,
+        description: treatment.description,
+        duration: treatment.duration,
+        buffer: treatment.buffer,
+        priceCents: treatment.priceCents,
+        isActive: treatment.isActive,
+      })
+      .from(treatment)
+      .leftJoin(practitionerTreatment, eq(practitionerTreatment.treatmentId, treatment.id))
+      .where(and(eq(practitionerTreatment.practitionerId, id), eq(treatment.isActive, true)));
+    const practitionerToGet: Practitioners[] = await db
       .select({
         id: practitioner.id,
         name: practitioner.name,
         bio: practitioner.bio,
-        isActive: practitioner.isActive,
-        treatmentId: practitionerTreatment.treatmentId,
-        treatmentName: treatment.name,
-        description: treatment.description,
-        duration: treatment.duration,
+        isActive: practitioner.isActive
       })
       .from(practitioner)
       .where(
@@ -166,29 +179,24 @@ export async function getActivePractitioner(clinicId: number, id: number): Promi
           eq(practitioner.id, id),
           eq(practitioner.isActive, true)
         ),
-      )
-      .leftJoin(
-        practitionerTreatment,
-        eq(practitionerTreatment.practitionerId, practitioner.id),
-      )
-      .leftJoin(
-        treatment,
-        eq(treatment.id, practitionerTreatment.treatmentId),
-      )
-      .orderBy(desc(practitionerTreatment.createdAt));
-    if (practitionerDetail.length === 0) {
+      );
+    if (practitionerToGet.length === 0) {
       return {
         success: false,
         status: 400,
         message: "Invalid practitioner id",
-        data: practitionerDetail,
+        data: null,
       };
+    }
+    const practitionerDetail: Practitioner = {
+      ...practitionerToGet[0],
+      treatments: treatmentsForPractitioner,
     }
     return {
       success: true,
       status: 200,
       message: "Practitioner details retrieved",
-      data: practitionerDetail[0],
+      data: practitionerDetail,
     }
   } catch (error) {
     return {
