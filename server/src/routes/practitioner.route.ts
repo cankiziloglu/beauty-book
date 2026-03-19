@@ -1,9 +1,11 @@
 import {
   activatePractitioner,
+  addTreatmentToPractitioner,
   createPractitioner,
   deactivatePractitioner,
   getPractitioner,
   getPractitioners,
+  removeTreatmentFromPractitioner,
   updatePractitioner,
 } from "@/handlers/practitioner.handlers";
 import createRoute from "@/lib/create-route";
@@ -93,7 +95,40 @@ practitioner
 
       return c.json(result, result.status)
     }
+  )
+  .post(
+    "/clinic/:slug/practitioner/:id/treatment/:treatmentId",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    zValidator("param", z.object({
+      id: z.coerce.number(),
+      treatmentId: z.coerce.number(),
+    })),
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const { id, treatmentId } = c.req.valid("param");
+      const result = await addTreatmentToPractitioner(clinicId, id, treatmentId);
+
+      return c.json(result, result.status)
+    }
+  )
+  .delete(
+    "/clinic/:slug/practitioner/:id/treatment/:treatmentId",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    zValidator("param", z.object({
+      id: z.coerce.number(),
+      treatmentId: z.coerce.number(),
+    })),
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const { id, treatmentId } = c.req.valid("param");
+      const result = await removeTreatmentFromPractitioner(clinicId, id, treatmentId);
+
+      return c.json(result, result.status)
+    }
   );
-// TODO: add treatment linking route and treatment removing route
 
 export default practitioner;
