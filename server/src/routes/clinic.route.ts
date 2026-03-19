@@ -19,11 +19,11 @@ const clinic = createRoute();
 clinic
   // Public Routes return active clinic's details only, while admin routes return inactive clinic's details.
   // Public Routes
-  .get("/clinic", async (c) => {
+  .get("/clinics", async (c) => {
     const result = await getAllClinics();
     return c.json(result, result.status);
   })
-  .get("/clinic/:slug", clinicMiddleware, async (c) => {
+  .get("/clinics/:slug", clinicMiddleware, async (c) => {
     const clinicId = c.get("clinicId");
     const result = await getActiveClinic(clinicId);
     return c.json(result, result.status);
