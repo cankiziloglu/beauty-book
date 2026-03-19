@@ -1,5 +1,7 @@
 import {
+  activateClinic,
   createClinic,
+  deactivateClinic,
   getAllClinics,
   getClinic,
   updateClinic,
@@ -16,20 +18,12 @@ const clinic = createRoute();
 clinic
   .get("/clinic", async (c) => {
     const result = await getAllClinics();
-    if (result.success) {
-      return c.json(result, 200);
-    } else {
-      return c.json(result, 500);
-    }
+    return c.json(result, result.status);
   })
   .get("/clinic/:slug", clinicMiddleware, async (c) => {
     const clinicId = c.get("clinicId");
     const result = await getClinic(clinicId);
-    if (result.success) {
-      return c.json(result, 200);
-    } else {
-      return c.json(result, 500);
-    }
+    return c.json(result, result.status);
   })
   .post(
     "/clinic/register",
@@ -41,11 +35,7 @@ clinic
       const adminId = c.get("adminId");
       const data = { ...validData, adminId: adminId! };
       const result = await createClinic(data);
-      if (result.success) {
-        return c.json(result, 201);
-      } else {
-        return c.json(result, 500);
-      }
+      return c.json(result, result.status);
     },
   )
   .put(
@@ -58,11 +48,29 @@ clinic
       const validData = c.req.valid("form");
       const clinicId = c.get("clinicId");
       const result = await updateClinic(clinicId, validData);
-      if (result.success) {
-        return c.json(result, 200);
-      } else {
-        return c.json(result, 500);
-      }
+      return c.json(result, result.status);
+    },
+  )
+  .put(
+    "/clinic/:slug/activate",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const result = await activateClinic(clinicId)
+      return c.json(result, result.status);
+    },
+  )
+  .put(
+    "/clinic/:slug/deactivate",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const result = await deactivateClinic(clinicId)
+      return c.json(result, result.status);
     },
   );
 
