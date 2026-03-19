@@ -1,0 +1,14 @@
+name: update-practitioner
+description: update practitioner
+method: PUT
+url: http://localhost:3000/api/clinic/Glow-Studio/practitioner/1
+body:
+  form_data:
+  - name: name
+    value: Deniz Kiziloglu
+  - name: bio
+    value: Lorem ipsum dolor met update
+  content_type: application/x-www-form-urlencoded
+headers:
+- name: Content-Type
+  value: application/x-www-form-urlencoded
