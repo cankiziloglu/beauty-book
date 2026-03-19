@@ -3,11 +3,14 @@ import {
   addTreatmentToPractitioner,
   createPractitioner,
   deactivatePractitioner,
+  getActivePractitioner,
+  getActivePractitioners,
   getPractitioner,
   getPractitioners,
   removeTreatmentFromPractitioner,
   updatePractitioner,
 } from "@/handlers/practitioner.handlers";
+import { auth } from "@/lib/auth";
 import createRoute from "@/lib/create-route";
 import { createPractitionerSchema, updatePractitionerSchema } from "@/lib/validators";
 import { adminMiddleware } from "@/middleware/admin.middleware";
@@ -19,12 +22,52 @@ import z from "zod";
 const practitioner = createRoute();
 
 practitioner
-  .get("/clinic/:slug/practitioner", clinicMiddleware, async (c) => {
+  // Public Routes return active practitioners only, while admin routes return all practitioners.
+  // Public Routes
+  .get("/clinic/:slug/practitioners", clinicMiddleware, async (c) => {
+    const clinicId = c.get("clinicId");
+    const result = await getActivePractitioners(clinicId);
+
+    return c.json(result, result.status)
+  })
+  .get(
+    "/clinic/:slug/practitioners/:id",
+    clinicMiddleware,
+    zValidator("param", z.object({ id: z.coerce.number() })),
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const { id } = c.req.valid("param");
+      const result = await getActivePractitioner(clinicId, id);
+
+      return c.json(result, result.status)
+    },
+  )
+  // Admin Routes
+  .get(
+    "/clinic/:slug/practitioner",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    async (c) => {
     const clinicId = c.get("clinicId");
     const result = await getPractitioners(clinicId);
 
     return c.json(result, result.status)
   })
+  .get(
+    "/clinic/:slug/practitioner/:id",
+    clinicMiddleware,
+    authMiddleware,
+    adminMiddleware,
+    zValidator("param", z.object({ id: z.coerce.number() })),
+    async (c) => {
+      const clinicId = c.get("clinicId");
+      const { id } = c.req.valid("param");
+      const result = await getPractitioner(clinicId, id);
+
+      return c.json(result, result.status)
+    },
+  )
   .post(
     "/clinic/:slug/practitioner/new",
     clinicMiddleware,
@@ -36,18 +79,6 @@ practitioner
       const validData = c.req.valid("form");
       const data = { ...validData, clinicId: clinicId };
       const result = await createPractitioner(data);
-
-      return c.json(result, result.status)
-    },
-  )
-  .get(
-    "/clinic/:slug/practitioner/:id",
-    clinicMiddleware,
-    zValidator("param", z.object({ id: z.coerce.number() })),
-    async (c) => {
-      const clinicId = c.get("clinicId");
-      const { id } = c.req.valid("param");
-      const result = await getPractitioner(clinicId, id);
 
       return c.json(result, result.status)
     },

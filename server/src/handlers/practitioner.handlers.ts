@@ -33,6 +33,38 @@ export async function getPractitioners(clinicId: number): Promise<SuccessRespons
   }
 }
 
+export async function getActivePractitioners(clinicId: number): Promise<SuccessResponse<Practitioners[]> | ErrorResponse> {
+  try {
+    const practitioners: Practitioners[] = await db
+      .select({
+        id: practitioner.id,
+        name: practitioner.name,
+        bio: practitioner.bio,
+        isActive: practitioner.isActive
+      })
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.isActive, true)
+        ),
+      );
+    return {
+      success: true,
+      status: 200,
+      message: "Get all practitioners",
+      data: practitioners,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured reading data",
+      data: error,
+    };
+  }
+}
+
 export async function createPractitioner(data: NewPractitioner): Promise<SuccessResponse<{ id: number }> | ErrorResponse> {
   try {
     const newPractitioner = await db
@@ -79,6 +111,60 @@ export async function getPractitioner(clinicId: number, id: number): Promise<Suc
         and(
           eq(practitioner.clinicId, clinicId),
           eq(practitioner.id, id),
+        ),
+      )
+      .leftJoin(
+        practitionerTreatment,
+        eq(practitionerTreatment.practitionerId, practitioner.id),
+      )
+      .leftJoin(
+        treatment,
+        eq(treatment.id, practitionerTreatment.treatmentId),
+      )
+      .orderBy(desc(practitionerTreatment.createdAt));
+    if (practitionerDetail.length === 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Invalid practitioner id",
+        data: practitionerDetail,
+      };
+    }
+    return {
+      success: true,
+      status: 200,
+      message: "Practitioner details retrieved",
+      data: practitionerDetail[0],
+    }
+  } catch (error) {
+    return {
+      success: false,
+      status: 500,
+      message: "An error occured reading data",
+      data: error,
+    };
+  }
+}
+
+export async function getActivePractitioner(clinicId: number, id: number): Promise<SuccessResponse<Practitioner> | ErrorResponse> {
+  try {
+    const practitionerDetail: Practitioner[] = await db
+      .select({
+        id: practitioner.id,
+        name: practitioner.name,
+        bio: practitioner.bio,
+        isActive: practitioner.isActive,
+        treatmentId: practitionerTreatment.treatmentId,
+        treatmentName: treatment.name,
+        description: treatment.description,
+        duration: treatment.duration,
+      })
+      .from(practitioner)
+      .where(
+        and(
+          eq(practitioner.clinicId, clinicId),
+          eq(practitioner.id, id),
+          eq(practitioner.isActive, true)
         ),
       )
       .leftJoin(
