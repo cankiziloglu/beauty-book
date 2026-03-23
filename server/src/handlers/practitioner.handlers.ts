@@ -504,6 +504,26 @@ export async function removeTreatmentFromPractitioner(clinicId: number, practiti
         data: existingLink,
       };
     }
+    // check if treatment has any upcoming appointments with practitioner before removing treatment
+    const upcomingAppointments = await db
+      .select()
+      .from(appointment)
+      .where(
+        and(
+          eq(appointment.clinicId, clinicId),
+          eq(appointment.practitionerId, practitionerId),
+          eq(appointment.treatmentId, treatmentId),
+          eq(appointment.status, "confirmed"),
+        ),
+      );
+    if (upcomingAppointments.length > 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Treatment has upcoming appointments with practitioner and cannot be removed. Try changing the appointments first.",
+        data: upcomingAppointments,
+      };
+    }
     // remove treatment from practitioner
     await db
       .delete(practitionerTreatment)
