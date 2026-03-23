@@ -15,6 +15,7 @@ treatment
   .get("/clinic/:slug/treatments", clinicMiddleware, async (c) => {
     const clinicId = c.get("clinicId")
     const result = await getActiveTreatments(clinicId)
+
     return c.json(result, result.status)
   })
   .get("/clinic/:slug/treatments/:id",
@@ -24,6 +25,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id } = c.req.valid("param");
       const result = await getActiveTreatment(clinicId, id);
+
       return c.json(result, result.status)
   })
   // Admin Routes
@@ -35,6 +37,7 @@ treatment
     async (c) => {
       const clinicId = c.get("clinicId")
       const result = await getTreatments(clinicId)
+
       return c.json(result, result.status)
   })
   .get(
@@ -47,6 +50,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id } = c.req.valid("param");
       const result = await getTreatment(clinicId, id);
+
       return c.json(result, result.status)
     }
   )
@@ -60,6 +64,7 @@ treatment
       const validData = c.req.valid("form");
       const data = { ...validData, clinicId: clinicId };
       const result = await createTreatment(data);
+
       return c.json(result, result.status)
     },
   )
@@ -75,6 +80,7 @@ treatment
       const { id } = c.req.valid("param");
       const validData = c.req.valid("form");
       const result = await updateTreatment(clinicId, id, validData);
+
       return c.json(result, result.status)
     },
   )
@@ -88,6 +94,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id } = c.req.valid("param");
       const result = await activateTreatment(clinicId, id);
+
       return c.json(result, result.status)
     },
   )
@@ -101,6 +108,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id } = c.req.valid("param");
       const result = await deactivateTreatment(clinicId, id);
+
       return c.json(result, result.status)
     },
   )
@@ -117,6 +125,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id, roomId } = c.req.valid("param");
       const result = await addRoomToTreatment(clinicId, id, roomId);
+
       return c.json(result, result.status)
     }
   )
@@ -133,6 +142,7 @@ treatment
       const clinicId = c.get("clinicId");
       const { id, roomId } = c.req.valid("param");
       const result = await removeRoomFromTreatment(clinicId, id, roomId);
+
       return c.json(result, result.status)
     }
   )

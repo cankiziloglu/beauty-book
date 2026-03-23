@@ -522,6 +522,23 @@ export async function removeRoomFromTreatment(clinicId: number, treatmentId: num
         data: null
       }
     }
+    // check if room is assigned to any upcoming appointments with treatment before removing
+    const upcomingAppointmentsWithRoomAndTreatment = await db.select().from(appointment).where(
+      and(
+        eq(appointment.treatmentId, treatmentId),
+        eq(appointment.roomId, roomId),
+        eq(appointment.clinicId, clinicId),
+        eq(appointment.status, "confirmed")
+      )
+    );
+    if (upcomingAppointmentsWithRoomAndTreatment.length > 0) {
+      return {
+        success: false,
+        status: 400,
+        message: "Cannot remove room from treatment with upcoming appointments assigned to room and treatment. Assign a different room to treatment for those appointments before removing.",
+        data: null
+      }
+    }
     // remove room from treatment
     await db
       .delete(roomTreatment)
