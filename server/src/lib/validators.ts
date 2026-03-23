@@ -1,7 +1,7 @@
 import {
+    client,
   clinic,
   practitioner,
-  practitionerTreatment,
   room,
   treatment,
 } from "@/db/schema";
@@ -110,8 +110,7 @@ export const updateTreatmentSchema = createUpdateSchema(treatment, {
 });
 export type UpdateTreatment = z.infer<typeof updateTreatmentSchema>;
 
-
-export const getRoomSchema = createSelectSchema(room).pick({
+ export const getRoomSchema = createSelectSchema(room).pick({
   id: true,
   name: true,
   isActive: true
@@ -132,10 +131,30 @@ export type NewRoom = z.infer<typeof createRoomSchema> & {
 export const updateRoomSchema = createUpdateSchema(room);
 export type UpdateRoom = z.infer<typeof updateRoomSchema>;
 
+export const createClientSchema = createInsertSchema(client).omit({
+  clinicId: true,
+  userId: true,
+})
+export type NewClient = z.infer<typeof createClientSchema> & {
+  clinicId: number;
+  userId: string;
+};
 
-export const createPractitionerTreatmentSchema = createInsertSchema(
-  practitionerTreatment,
-);
-export const updatePractitionerTreatmentSchema = createUpdateSchema(
-  practitionerTreatment,
-);
+export const getClientSchema = createSelectSchema(client).pick({
+  id: true,
+  phoneNumber: true,
+  address: true,
+  lateCancelCount: true,
+  userId: true,
+  clinicId: true,
+});
+export type Clients = z.infer<typeof getClientSchema>;
+export type Client = Clients & {
+  userId: string;
+  name: string;
+  email: string;
+  image: string | null;
+}
+
+export const updateClientSchema = createUpdateSchema(client);
+export type UpdateClient = z.infer<typeof updateClientSchema>;
