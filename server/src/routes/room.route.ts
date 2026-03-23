@@ -1,7 +1,7 @@
 
 import { activateRoom, createRoom, deactivateRoom, getRoom, getRooms, updateRoom } from "@/handlers/room.handlers";
 import createRoute from "@/lib/create-route";
-import { createRoomSchema, createTreatmentSchema, updateRoomSchema } from "@/lib/validators";
+import { createRoomSchema, updateRoomSchema } from "@/lib/validators";
 import { adminMiddleware } from "@/middleware/admin.middleware";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { clinicMiddleware } from "@/middleware/clinic.middleware";

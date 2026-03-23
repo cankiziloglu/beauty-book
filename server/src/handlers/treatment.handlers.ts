@@ -274,7 +274,7 @@ export async function updateTreatment(clinicId: number, id: number, data: Update
     // if valid, update treatment
     const updatedTreatment = await db
       .update(treatment)
-      .set({ ...data })
+      .set(data)
       .where(
         and(
           eq(treatment.clinicId, clinicId),

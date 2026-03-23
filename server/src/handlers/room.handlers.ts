@@ -2,7 +2,7 @@ import db from "@/db/db";
 import { room, roomTreatment, treatment } from "@/db/schema";
 import { ErrorResponse, SuccessResponse } from "@/lib/types";
 import { NewRoom, Room, Rooms, Treatments, UpdateRoom } from "@/lib/validators";
-import { and, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 
 export async function getRooms(clinicId: number): Promise<SuccessResponse<Rooms[]> | ErrorResponse> {
@@ -140,7 +140,7 @@ export async function updateRoom(clinicId: number, id: number, data: UpdateRoom)
     }
     const updatedRoom = await db
       .update(room)
-      .set({ ...data })
+      .set(data)
       .where(
         and(
           eq(room.clinicId, clinicId),

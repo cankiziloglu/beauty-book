@@ -10,7 +10,6 @@ import {
   removeTreatmentFromPractitioner,
   updatePractitioner,
 } from "@/handlers/practitioner.handlers";
-import { auth } from "@/lib/auth";
 import createRoute from "@/lib/create-route";
 import { createPractitionerSchema, updatePractitionerSchema } from "@/lib/validators";
 import { adminMiddleware } from "@/middleware/admin.middleware";
